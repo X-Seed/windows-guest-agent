@@ -1,15 +1,19 @@
 {
-  "name": "windows-guest-agent",
+  "name": "guest-agent",
   "version": "1.0.0",
   "description": "",
   "main": "app.js",
+  "bin": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "buildWindows": "npx pkg . -t win",
+    "build": "npx pkg ."
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
-    "node-ahk": "^1.0.7"
+    "node-ahk": "^1.0.7",
+    "pkg": "*"
   }
 }

@@ -12,8 +12,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^0.21.1",
     "express": "^4.17.1",
     "node-ahk": "^1.0.7",
-    "pkg": "*"
+    "pkg": "^5.2.1"
   }
 }

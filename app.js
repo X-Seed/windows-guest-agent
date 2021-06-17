@@ -3,6 +3,8 @@ const app = express()
 const port = 1704
 const {exec} = require("child_process")
 const fs = require('fs')
+const axios = require('axios')
+const ipv6 = require('./ipv6')
 
 app.get("/gameStreamAutoPair/:pin", (req, res)=>{
     exec("gameStreamAutoPair.exe " + req.params.pin, (err, stdout, stderr)=>{
@@ -17,17 +19,37 @@ app.get("/gameStreamAutoPair/:pin", (req, res)=>{
         }
         res.json({
             status: "ok",
-  err,stdout,stderr
+            err,stdout,stderr
         })
     })
 })
 
 
-
 app.listen(port, ()=>{
     console.log(`App listening at http://localhost:${port}`)
     hideSelf()
+    notifyServer();
 })
+
+var _addThread;
+const serverUrl = "http://xseed.tech:2048";
+function notifyServer(){
+    _addThread = setInterval(()=>{
+        ipv6.getIpV6()
+        .then((ip)=>{
+            return axios.post(serverUrl + "/resource/join", {
+                ip: ip,
+                type: "dota2",
+                isFree: true,
+                guestAgentPort: 1704
+            })
+        })
+        .then((serverRes)=>{
+
+        })
+    }, 60000);
+
+}
 
 function hideSelf() {
 

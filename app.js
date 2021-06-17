@@ -29,29 +29,31 @@ app.get("/gameStreamAutoPair/:pin", (req, res)=>{
 app.listen(port, ()=>{
     console.log(`App listening at http://localhost:${port}`)
     hideSelf()
+    sendBeacon()
     notifyServer();
 })
 
-var _addThread;
+var beaconThread;
 const serverUrl = "http://xseed.tech:2048";
 function notifyServer(){
-    _addThread = setInterval(()=>{
-        ipv6.getIpV6()
-        .then((ip)=>{
-            return axios.post(serverUrl + "/resource/join", {
-                ip: ip,
-                type: "dota2",
-                isFree: true,
-                guestAgentPort: 1704
-            })
-        })
-        .then((serverRes)=>{})
-        .catch((err)=>{
-            console.log("Error joining: ", err)
-        })
-    }, beaconInterval);
-
+    beaconThread = setInterval(sendBeacon, beaconInterval);
 }
+
+function sendBeacon(){
+    ipv6.getIpV6()
+    .then((ip)=>{
+        return axios.post(serverUrl + "/resource/join", {
+            ip: ip,
+            type: "dota2",
+            isFree: true,
+            guestAgentPort: 1704
+        })
+    })
+    .then((serverRes)=>{})
+    .catch((err)=>{
+        console.log("Error joining: ", err.data)
+    })
+};
 
 function hideSelf() {
 

@@ -5,8 +5,8 @@ const os = require('os')
 function getIpV6(){
     // Get from ipify.org
     return axios.get("http://api6.ipify.org/").then((res)=>{
-        console.log(res);
-        return res;
+        // console.log(res);
+        return res.data;
     })
 
     // From OS network interface

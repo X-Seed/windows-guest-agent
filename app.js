@@ -45,7 +45,7 @@ function notifyServer(){
             })
         })
         .then((serverRes)=>{
-
+            
         })
     }, 60000);
 

@@ -5,6 +5,7 @@ const {exec} = require("child_process")
 const fs = require('fs')
 const axios = require('axios')
 const ipv6 = require('./ipv6')
+const beaconInterval = 60000;
 
 app.get("/gameStreamAutoPair/:pin", (req, res)=>{
     exec("gameStreamAutoPair.exe " + req.params.pin, (err, stdout, stderr)=>{
@@ -44,10 +45,11 @@ function notifyServer(){
                 guestAgentPort: 1704
             })
         })
-        .then((serverRes)=>{
-            
+        .then((serverRes)=>{})
+        .catch((err)=>{
+            console.log("Error joining: ", err)
         })
-    }, 60000);
+    }, beaconInterval);
 
 }
 

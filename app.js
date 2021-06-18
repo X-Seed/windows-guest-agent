@@ -25,6 +25,15 @@ app.get("/gameStreamAutoPair/:pin", (req, res)=>{
     })
 })
 
+//2.5Mb ~ test for 20Mbps
+const testBuffer = Buffer.alloc(2.5*1024*1024, 5);
+app.all("/networkCheck/bandWidth", (req, res)=>{
+    res.end(testBuffer);
+})
+
+app.all("/networkCheck/ping", (req, res)=>{
+    res.end("");
+})
 
 app.listen(port, ()=>{
     console.log(`App listening at http://localhost:${port}`)

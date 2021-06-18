@@ -26,7 +26,8 @@ app.get("/gameStreamAutoPair/:pin", (req, res)=>{
 })
 
 //2.5Mb ~ test for 20Mbps
-const testBuffer = Buffer.alloc(2.5*1024*1024, 5);
+//5Mb bite size to alleviate the http connection overhead
+const testBuffer = Buffer.alloc(5*1024*1024, 5);
 app.all("/networkCheck/bandWidth", (req, res)=>{
     res.end(testBuffer);
 })

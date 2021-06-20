@@ -8,15 +8,17 @@ const ipv6 = require('./ipv6')
 const gfeClient = require("./gfeClient")
 const beaconInterval = 10000;
 
+//5Mb bite size to alleviate the http connection overhead
+const biteSize = 0.5*1024*1024;
+
 app.get("/gameStreamAutoPair/:pin", (req, res)=>{
     res.json(
         gfeClient.autoPair(pin)
     )
 })
 
-//2.5Mb ~ test for 20Mbps
-//5Mb bite size to alleviate the http connection overhead
-const testBuffer = Buffer.alloc(5*1024*1024, 5);
+//2.5Mb/s ~ test for 20Mbps
+const testBuffer = Buffer.alloc(biteSize, 5);
 app.all("/networkCheck/bandWidth", (req, res)=>{
     res.end(testBuffer);
 })

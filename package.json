@@ -14,7 +14,9 @@
   "dependencies": {
     "axios": "^0.21.1",
     "express": "^4.17.1",
+    "fast-xml-parser": "^3.19.0",
     "node-ahk": "^1.0.7",
-    "pkg": "^5.2.1"
+    "pkg": "^5.2.1",
+    "uuid": "^8.3.2"
   }
 }

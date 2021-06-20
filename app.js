@@ -5,24 +5,13 @@ const {exec} = require("child_process")
 const fs = require('fs')
 const axios = require('axios')
 const ipv6 = require('./ipv6')
+const gfeClient = require("./gfeClient")
 const beaconInterval = 10000;
 
 app.get("/gameStreamAutoPair/:pin", (req, res)=>{
-    exec("gameStreamAutoPair.exe " + req.params.pin, (err, stdout, stderr)=>{
-        console.log("Err: ", err);
-        console.log("Output: ", stdout);
-        if(err){
-            res.json({
-                status: "failed",
-                errMsg: err.toString()
-            })
-            return;
-        }
-        res.json({
-            status: "ok",
-            err,stdout,stderr
-        })
-    })
+    res.json(
+        gfeClient.autoPair(pin)
+    )
 })
 
 //2.5Mb ~ test for 20Mbps

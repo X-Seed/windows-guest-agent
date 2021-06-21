@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^0.21.1",
+    "crypto-js": "^4.0.0",
     "express": "^4.17.1",
     "fast-xml-parser": "^3.19.0",
     "node-ahk": "^1.0.7",

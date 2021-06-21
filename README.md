@@ -3,7 +3,7 @@
 
 # Dependencies
 - AutoHotKey to compile the .ahk file to .exe 
-- Node
+- Node v16 (for utilities with X509Certificate)
 
 # Usage 
 - use autoHotKey to compile the .ahk code to .exe 

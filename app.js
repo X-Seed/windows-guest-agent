@@ -5,7 +5,7 @@ const {exec} = require("child_process")
 const fs = require('fs')
 const axios = require('axios')
 const ipv6 = require('./ipv6')
-const gfeClient = require("./gfeClient")
+const gfeClient = require("./gfeClient")("::")
 const beaconInterval = 10000;
 
 //5Mb bite size to alleviate the http connection overhead

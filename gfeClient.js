@@ -1,7 +1,7 @@
 const axios = require('axios')
 const uuid = require('uuid').v4;
 const xmlParser = require('fast-xml-parser');
-const { createHash, createSign, createCipheriv, X509Certificate } = require("crypto");
+const { createHash, createSign} = require("crypto");
 const httpPort = 47989;
 const httpsPort = 47984;
 const fs = require("fs")
@@ -9,6 +9,7 @@ const https = require("https");
 const {exec} = require("child_process")
 const sign = createSign('SHA256');
 const CryptoJS = require("crypto-js")
+const {X509} = require("jsrsasign");
 
 const uniqueMoonlightClientId = "0123456789ABCDEF"
 const obj = {};
@@ -108,7 +109,7 @@ function pair (){
         var randomChallenge = Buffer.alloc(16, 1);
         var encryptedChallenge = encryptAes(randomChallenge, aesKey);
 
-        var decryptedChallenge = decryptAes(encryptedChallenge, aesKey);
+        // var decryptedChallenge = decryptAes(encryptedChallenge, aesKey);
 
         // challengeResp
         var url = obj.httpBaseUrl + "pair?" + buildUniqueUuidString() + 
@@ -130,13 +131,20 @@ function pair (){
         var serverChallengeResp =  Buffer.from(res.challengeresponse, "hex")
         serverChallengeResp = decryptAes(serverChallengeResp, aesKey);
 
-        var serverResponse = Buffer.from(serverChallengeResp, 0, hashLength);
-        var serverChallenge = Buffer.from(serverChallengeResp, hashLength, 16);
+        var serverResponse = Buffer.alloc(hashLength, 0);
+        serverChallengeResp.copy(serverResponse, 0, 0, hashLength);
+        var serverChallenge = Buffer.alloc(16, 0);
+        serverChallengeResp.copy(serverChallenge, 0, hashLength, hashLength + 16);
 
         var clientSecret = Buffer.alloc(16, 1);
-        var clientSignature = new X509Certificate(this.clientKeyPair.cert).publicKey;
+        var clientSignature; //= new X509Certificate(this.clientKeyPair.cert).publicKey;
+        var x509Cert = new X509();
+        x509Cert.readCertPEM(this.clientKeyPair.cert.toString("utf8"));
+        clientSignature = x509Cert.getSignatureValueHex();
+        clientSignature = Buffer.from(clientSignature, "hex");
+        
         var challengeRespHash = createHash(hashAlgo).update(
-            Buffer.from([serverChallenge, clientSignature, clientSecret])
+            Buffer.concat([serverChallenge, clientSignature, clientSecret])
         ).digest();
 
         var challengeRespEncrypted = encryptAes(challengeRespHash, aesKey);
@@ -154,8 +162,10 @@ function pair (){
     .then((res)=>{
         var res = xmlParser.parse(res.data).root;
         var serverSecretResp = Buffer.from(res.pairingsecret, "hex");
-        var serverSecret = Buffer.from(serverSecretResp, 0, 16);
-        var serverSignature = Buffer.from(serverSecretResp, 16, 256);
+        var serverSecret = Buffer.alloc(16, 0);
+        serverSecretResp.copy(serverSecret, 0, 0, 16);
+        var serverSignature = Buffer.alloc(256, 0);
+        serverSecretResp.copy(serverSignature, 0, 16, 16 + 256);
 
         // Verify server secret - Do we need this? No.
         // verifySignature(serverSecret, serverSignature, serverCert)
@@ -165,7 +175,7 @@ function pair (){
         var clientSecret = Buffer.alloc(16, 1);
         sign.update(clientSecret).end();
         var signedSecret = sign.sign(obj.clientKeyPair.key);
-        var clientPairingSecret = Buffer.from([clientSecret, signedSecret]);
+        var clientPairingSecret = Buffer.concat([clientSecret, signedSecret]);
         // clientSecretResp
         var url = obj.httpBaseUrl + "pair?" + buildUniqueUuidString() +
         "&devicename=roth&updateState=1&clientpairingsecret=" + clientPairingSecret.toString('hex').toUpperCase();
@@ -195,20 +205,26 @@ function pair (){
     setTimeout(()=>obj.autoPair("1234"), 500);
 }
 
-function _quitAppsOp_proneToError(trial, loopback, /*coolDownMs*/){
+function _quitAppsOp_proneToError(trial, loopback, maxTrial/*coolDownMs*/){
     var tryCancelUrl = obj.httpsBaseUrl + "cancel?" + buildUniqueUuidString();
     console.log("Trial: ", trial);
 
     return obj.httpClient.get(tryCancelUrl)
     .catch((err)=>{
-        return loopback(trial + 1, loopback);
+        if(trial >= maxTrial){
+            return Promise.reject(err);
+        }
+        else{
+            return loopback(trial + 1, loopback);
+        }
     })
 }
 function quitAllApps(){
     console.log("Starting quitApp op...");
-    var tryOp = _quitAppsOp_proneToError(0, _quitAppsOp_proneToError/*, 200*/);
+    var tryOp = _quitAppsOp_proneToError(0, _quitAppsOp_proneToError, 4/*, 200*/);
     tryOp = tryOp.then((res)=>{
         console.log("Quit successful: ", xmlParser.parse(res.data));
+        console.log("Raw res: ", res.data);
     })
     return tryOp;
 }
@@ -224,20 +240,20 @@ function pairChallenge(){
 }
 
 function autoPair(pin){
-    // exec("gameStreamAutoPair.exe " + pin, (err, stdout, stderr)=>{
-    //     console.log("Err: ", err);
-    //     console.log("Output: ", stdout);
-    //     if(err){
-    //         return {
-    //             status: "failed",
-    //             errMsg: err.toString()
-    //         }
-    //     }
-    //     return{
-    //         status: "ok",
-    //         err,stdout,stderr
-    //     };
-    // })
+    exec("gameStreamAutoPair.exe " + pin, (err, stdout, stderr)=>{
+        console.log("Err: ", err);
+        console.log("Output: ", stdout);
+        if(err){
+            return {
+                status: "failed",
+                errMsg: err.toString()
+            }
+        }
+        return{
+            status: "ok",
+            err,stdout,stderr
+        };
+    })
 }
 
 module.exports = function(hostAddr){
@@ -256,10 +272,10 @@ module.exports = function(hostAddr){
     obj.decryptAes = decryptAes;
 
     obj.clientKeyPair = {
-        key: Buffer.from(fs.readFileSync("uselessCert/key.pem")),
-        cert: Buffer.from(fs.readFileSync("uselessCert/certificate.pem")),
-        // key: fs.readFileSync("clientKey.pem"),
-        // cert: fs.readFileSync("client.crt")
+        // key: Buffer.from(fs.readFileSync("uselessCert/key.pem")),
+        // cert: Buffer.from(fs.readFileSync("uselessCert/certificate.pem")),
+        key: fs.readFileSync("uselessCert/client.pem"),
+        cert: fs.readFileSync("uselessCert/client.crt")
     }
 
     // Trick to accept server self-signed cert, without bunches of code

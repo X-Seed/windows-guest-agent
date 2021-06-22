@@ -97,7 +97,7 @@ function pair (){
     "&devicename=roth&updateState=1&phrase=getservercert&salt=" + fixedSalt.toString('hex').toUpperCase()
     + "&clientcert=" + this.clientKeyPair.cert.toString('hex').toUpperCase();
 
-    obj.httpClient.get(url)
+    var chainedPairOp = obj.httpClient.get(url)
     .catch(err=>{
         console.log("Pair req failed - getServerCert", err)
         obj.httpClient.get(obj.httpBaseUrl + "unpair?" + buildUniqueUuidString());
@@ -203,6 +203,8 @@ function pair (){
     })
 
     setTimeout(()=>obj.autoPair("1234"), 500);
+
+    return chainedPairOp;
 }
 
 function _quitAppsOp_proneToError(trial, loopback, maxTrial/*coolDownMs*/){

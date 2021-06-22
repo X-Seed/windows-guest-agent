@@ -67,7 +67,7 @@ function decryptAes(data, secretKey){
 }
 
 function pair (){
-    console.log(this.httpBaseUrl);
+    console.log("This client obj: ", this);
     
     var hashAlgo, hashLength;
     if(parseInt(this.serverInfo.appversion.split(".")[0]) >= 7){
@@ -93,9 +93,9 @@ function pair (){
     var aesKey = Buffer.alloc(16)
     aesKeyFull.copy(aesKey, 0, 0, 16);
 
-    var url = this.httpBaseUrl + "pair?" + buildUniqueUuidString() +
+    var url = obj.httpBaseUrl + "pair?" + buildUniqueUuidString() +
     "&devicename=roth&updateState=1&phrase=getservercert&salt=" + fixedSalt.toString('hex').toUpperCase()
-    + "&clientcert=" + this.clientKeyPair.cert.toString('hex').toUpperCase();
+    + "&clientcert=" + obj.clientKeyPair.cert.toString('hex').toUpperCase();
 
     var chainedPairOp = obj.httpClient.get(url)
     .catch(err=>{
@@ -217,16 +217,17 @@ function _quitAppsOp_proneToError(trial, loopback, maxTrial/*coolDownMs*/){
             return Promise.reject(err);
         }
         else{
-            return loopback(trial + 1, loopback);
+            return loopback(trial + 1, loopback, maxTrial);
         }
     })
 }
 function quitAllApps(){
     console.log("Starting quitApp op...");
-    var tryOp = _quitAppsOp_proneToError(0, _quitAppsOp_proneToError, 4/*, 200*/);
+    var tryOp = _quitAppsOp_proneToError(0, _quitAppsOp_proneToError, 5/*, 200*/);
     tryOp = tryOp.then((res)=>{
         console.log("Quit successful: ", xmlParser.parse(res.data));
         console.log("Raw res: ", res.data);
+	return xmlParser.parse(res.data)
     })
     return tryOp;
 }
@@ -292,9 +293,11 @@ module.exports = function(hostAddr){
         })
     })
 
-    obj.getServerInfo().then(serverInfo=>{
-        obj.serverInfo = serverInfo;
-    })
+    obj.init = ()=>{
+        return obj.getServerInfo().then(serverInfo=>{
+            obj.serverInfo = serverInfo;
+        })
+    }
 
     return obj;
 }

@@ -29,9 +29,10 @@ app.all("/networkCheck/ping", (req, res)=>{
 
 app.all("/quitAllApps", (req, res)=>{
     var op = gfeClient.quitAllApps();
-    op.then((res)=>{
+    op.then((result)=>{
         res.json({
-            status: "ok"
+            status: "ok",
+            result: result
         })
     })
     .catch((err)=>{
@@ -45,12 +46,15 @@ app.all("/quitAllApps", (req, res)=>{
 app.listen(port, ()=>{
     console.log(`App listening at http://localhost:${port}`)
 
-    gfeClient.pair().then(()=>{
+    gfeClient.init()
+    .then(()=>gfeClient.pair())
+    .then(()=>{
         console.log("GFE client successfully paired with server!");
         hideSelf()
         sendBeacon()
         notifyServer()
     })
+    //gfeClient.init().then(()=>console.log(gfeClient))
 })
 
 var beaconThread;

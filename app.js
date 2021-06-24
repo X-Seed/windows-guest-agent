@@ -13,7 +13,7 @@ const biteSize = 0.5*1024*1024;
 
 app.get("/gameStreamAutoPair/:pin", (req, res)=>{
     res.json(
-        gfeClient.autoPair(pin)
+        gfeClient.autoPair(req.params.pin)
     )
 })
 

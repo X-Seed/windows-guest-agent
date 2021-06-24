@@ -259,6 +259,35 @@ function autoPair(pin){
     })
 }
 
+function _tryOpRec(op, trialNum, maxTrial, delayBetweenFailureMs = 0){
+    if(trialNum >= maxTrial){
+        return op().then(res=>res).catch(err=>{
+            console.log("Max", maxTrial, "trials reached. Last err:", err);
+            return Promise.reject(err);
+        });
+    }
+    return op()
+    .then((res)=>{
+        return res;
+    })
+    .catch((err)=>{
+        return new Promise((resolve, reject)=>{
+            setTimeout(()=>{
+                _tryOpRec(op, trialNum + 1, maxTrial, delayBetweenFailureMs)
+                .then((res)=>{
+                    resolve(res);
+                })
+                .catch((err)=>{
+                    reject(err);
+                });
+            }, delayBetweenFailureMs);
+        })
+    })
+}
+function tryOp(op, maxTrial, delayBetweenFailureMs){
+    return _tryOpRec(op, 1, maxTrial, delayBetweenFailureMs);
+}
+
 module.exports = function(hostAddr){
     obj.hostAddr = hostAddr;
     obj.httpBaseUrl = "http://[" + hostAddr + "]:" + httpPort + "/";
@@ -294,8 +323,9 @@ module.exports = function(hostAddr){
     })
 
     obj.init = ()=>{
-        return obj.getServerInfo().then(serverInfo=>{
+        return tryOp(()=>obj.getServerInfo(), 3, 1000).then(serverInfo=>{
             obj.serverInfo = serverInfo;
+            return serverInfo;
         })
     }
 

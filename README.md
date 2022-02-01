@@ -23,3 +23,5 @@ npm run buildWindows
 - Auto open firewall
 - Currently assuming PC has IPv6. Maybe supports IPv4 soon? 
 - Generate key pair that is compatible with GFE.
+
+- Auto change NvStream registry key to enable streaming. key location: `{HKEY_LOCAL_MACHINE/Software}/NVIDIA Corporation/NvStream/EnableStreaming`

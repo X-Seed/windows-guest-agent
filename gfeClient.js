@@ -323,7 +323,7 @@ module.exports = function(hostAddr){
     })
 
     obj.init = ()=>{
-        return tryOp(()=>obj.getServerInfo(), 3, 1000).then(serverInfo=>{
+        return tryOp(()=>obj.getServerInfo(), 100, 3000).then(serverInfo=>{
             obj.serverInfo = serverInfo;
             return serverInfo;
         })

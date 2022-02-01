@@ -18,7 +18,6 @@
     "fast-xml-parser": "^3.19.0",
     "jsrsasign": "^10.3.0",
     "node-ahk": "^1.0.7",
-    "node-resourcehacker": "^1.2.1",
     "pkg": "^5.2.1",
     "uuid": "^8.3.2"
   }
